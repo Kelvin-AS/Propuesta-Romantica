@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleNoClick() {
-        showFinalScreen("¡Gracias a Dios que dijiste que no!", "No quiero entregar mi alma al diablo. 😅");
+        showFinalScreen("¡Gracias a Dios que dijiste que no!", "No quiero entregar mi alma al diablo. TE AMOOOOO😅");
     }
 
     function moveYesButton() {
