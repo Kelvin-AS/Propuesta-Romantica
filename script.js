@@ -1,11 +1,3 @@
-const images = [
-    'imagenes/Imagen de WhatsApp 2024-10-10 a las 17.33.51_54fa401f.jpg',
-    'imagenes/Imagen de WhatsApp 2.jpg',
-    'imagenes/Imagen de WhatsApp 3.jpg'
-];
-
-let yesClicks = 0;
-
 document.addEventListener('DOMContentLoaded', () => {
     const giftScreen = document.getElementById('gift-screen');
     const photosScreen = document.getElementById('photos-screen');
@@ -17,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const noButton = document.getElementById('no-button');
     const finalMessage = document.getElementById('final-message');
     const finalText = document.getElementById('final-text');
+
+    let yesClicks = 0;
 
     document.getElementById('open-gift').addEventListener('click', () => {
         giftScreen.classList.add('hidden');
@@ -39,10 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
     noButton.addEventListener('click', handleNoClick);
 
     function loadPhotos() {
-        images.forEach(src => {
+        config.images.forEach(src => {
             const img = document.createElement('img');
             img.src = src;
-            img.alt = 'imagenes/Imagen de WhatsApp 2024-10-10 a las 17.33.51_54fa401f.jpg';
+            img.alt = 'Foto de nosotros';
             photoGallery.appendChild(img);
         });
     }
@@ -52,12 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (yesClicks < 50) {
             moveYesButton();
         } else {
-            showFinalScreen("¡Gracias a Dios que no dijiste que sí!", "No quiero entregar mi alma al diablo. TE AMOOOO😅");
+            showFinalScreen("¡De verdad te quieres casar?!", "le diste 50 veces que si 😅");
         }
     }
 
     function handleNoClick() {
-        showFinalScreen("¡Gracias a Dios que dijiste que no!", "No quiero entregar mi alma al diablo. TE AMOOOOO😅");
+        showFinalScreen("¡Bicho no te quieres casar conmigo!", "Yo si queria");
     }
 
     function moveYesButton() {
@@ -78,13 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createFloatingRoses() {
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 20; i++) {
             const rose = document.createElement('div');
             rose.textContent = '🌹';
             rose.classList.add('rose');
-            rose.style.left = `${Math.random() * 400}vw`;
-            rose.style.animationDuration = `${Math.random() * 20 + 20}s`;
-            rose.style.animationDelay = `${Math.random() * 20}s`;
+            rose.style.left = `${Math.random() * 100}vw`;
+            rose.style.animationDuration = `${Math.random() * 10 + 10}s`;
+            rose.style.animationDelay = `${Math.random() * 10}s`;
             document.body.appendChild(rose);
             rose.style.animation = 'float linear infinite';
         }
