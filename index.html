@@ -3,36 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Un regalo para ti, mi amor</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Regalo Romántico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #FFF0F5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #app {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            width: 350px;
+        }
+        .screen {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        h1, h2 {
+            color: #FF69B4;
+            text-align: center;
+        }
+        button {
+            background-color: #FF69B4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: block;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #FF1493;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #photo-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #photo-gallery img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div id="app">
-        <div id="gift-screen" class="screen">
-            <h1>¡Tengo un regalo para ti, mi amor!</h1>
-            <button id="open-gift">Abrir regalo</button>
+        <div id="home-screen" class="screen active">
+            <h1>Regalo Romántico</h1>
+            <button id="view-gift">Ver Regalo</button>
+            <button id="admin-login">Administrador</button>
         </div>
-        <div id="photos-screen" class="screen hidden">
-            <h2>Nuestros momentos juntos</h2>
+        <div id="admin-login-screen" class="screen">
+            <h2>Iniciar Sesión</h2>
+            <input type="text" id="username" placeholder="Usuario">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button id="login">Iniciar Sesión</button>
+            <button id="register">Registrarse</button>
+        </div>
+        <div id="admin-panel" class="screen">
+            <h2>Panel de Administración</h2>
+            <input type="file" id="photo-upload" accept="image/*" multiple class="hidden">
+            <button id="upload-photos">Subir Fotos</button>
             <div id="photo-gallery"></div>
-            <label for="image-upload" class="upload-button">Añadir imagen</label>
-            <input type="file" id="image-upload" accept="image/*" capture="camera" class="hidden">
+            <button id="generate-link">Generar Enlace</button>
+            <p id="generated-link"></p>
+            <button id="copy-link">Copiar Enlace</button>
+            <button id="admin-logout">Cerrar Sesión</button>
+        </div>
+        <div id="gift-screen" class="screen">
+            <h2>Nuestros momentos juntos</h2>
+            <div id="gift-photo-gallery"></div>
             <button id="continue-button">Continuar</button>
         </div>
-        <div id="question-screen" class="screen hidden">
-            <h2>Tengo una pregunta importante...</h2>
-            <button id="ask-question">Hacer la pregunta</button>
-        </div>
-        <div id="proposal-screen" class="screen hidden">
+        <div id="proposal-screen" class="screen">
             <h2>¿Quieres ser mi esposa?</h2>
             <button id="yes-button">Sí</button>
             <button id="no-button">No</button>
         </div>
-        <div id="final-screen" class="screen hidden">
+        <div id="final-screen" class="screen">
             <h2 id="final-message"></h2>
             <p id="final-text"></p>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script>
+        const app = document.getElementById('app');
+        const screens = {
+            home: document.getElementById('home-screen'),
+            adminLogin: document.getElementById('admin-login-screen'),
+            adminPanel: document.getElementById('admin-panel'),
+            gift: document.getElementById('gift-screen'),
+            proposal: document.getElementById('proposal-screen'),
+            final: document.getElementById('final-screen')
+        };
+
+        let currentUser = null;
+        let selectedPhotos = [];
+
+        function showScreen(screenId) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenId].classList.add('active');
+        }
+
+        function generateUniqueLink() {
+            return 'gift_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function saveGift(photos) {
+            const link = generateUniqueLink();
+            localStorage.setItem(link, JSON.stringify(photos));
+            return link;
+        }
+
+        function loadGift(link) {
+            return JSON.parse(localStorage.getItem(link));
+        }
+
+        function displayPhotos(containerId, photos) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            photos.forEach(photo => {
+                const img = document.createElement('img');
+                img.src = photo;
+                container.appendChild(img);
+            });
+        }
+
+        document.getElementById('view-gift').addEventListener('click', () => {
+            const giftId = new URLSearchParams(window.location.search).get('gift');
+            if (giftId) {
+                const giftPhotos = loadGift(giftId);
+                if (giftPhotos) {
+                    displayPhotos('gift-photo-gallery', giftPhotos);
+                    showScreen('gift');
+                } else {
+                    alert('Regalo no encontrado');
+                }
+            } else {
+                alert('No hay regalo para mostrar');
+            }
+        });
+
+        document.getElementById('admin-login').addEventListener('click', () => {
+            showScreen('adminLogin');
+        });
+
+        document.getElementById('login').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const users = JSON.parse(localStorage.getItem('users')) || {};
+            if (users[username] === password) {
+                currentUser = username;
+                showScreen('adminPanel');
+            } else {
+                alert('Usuario o contraseña incorrectos');
+            }
+        });
+
+        document.getElementById('register').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const users = JSON.parse(localStorage.getItem('users')) || {};
+            if (users[username]) {
+                alert('El usuario ya existe');
+            } else {
+                users[username] = password;
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('Usuario registrado con éxito');
+            }
+        });
+
+        document.getElementById('upload-photos').addEventListener('click', () => {
+            document.getElementById('photo-upload').click();
+        });
+
+        document.getElementById('photo-upload').addEventListener('change', (event) => {
+            const files = event.target.files;
+            selectedPhotos = [];
+            for (let i = 0; i < files.length; i++) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    selectedPhotos.push(e.target.result);
+                    displayPhotos('photo-gallery', selectedPhotos);
+                };
+                reader.readAsDataURL(files[i]);
+            }
+        });
+
+        document.getElementById('generate-link').addEventListener('click', () => {
+            if (selectedPhotos.length > 0) {
+                const link = saveGift(selectedPhotos);
+                const fullLink = `${window.location.origin}${window.location.pathname}?gift=${link}`;
+                document.getElementById('generated-link').textContent = fullLink;
+            } else {
+                alert('Por favor, sube fotos primero');
+            }
+        });
+
+        document.getElementById('copy-link').addEventListener('click', () => {
+            const link = document.getElementById('generated-link').textContent;
+            if (link) {
+                navigator.clipboard.writeText(link).then(() => {
+                    alert('Enlace copiado al portapapeles');
+                });
+            } else {
+                alert('Genera un enlace primero');
+            }
+        });
+
+        document.getElementById('admin-logout').addEventListener('click', () => {
+            currentUser = null;
+            showScreen('home');
+        });
+
+        document.getElementById('continue-button').addEventListener('click', () => {
+            showScreen('proposal');
+        });
+
+        let yesClicks = 0;
+        document.getElementById('yes-button').addEventListener('click', () => {
+            yesClicks++;
+            if (yesClicks < 5) {
+                const button = document.getElementById('yes-button');
+                const maxX = window.innerWidth - button.offsetWidth;
+                const maxY = window.innerHeight - button.offsetHeight;
+                button.style.position = 'fixed';
+                button.style.left = `${Math.random() * maxX}px`;
+                button.style.top = `${Math.random() * maxY}px`;
+            } else {
+                showFinalScreen("¡Gracias a Dios que no dijiste que sí!", "No quiero entregar mi alma al diablo. 😅");
+            }
+        });
+
+        document.getElementById('no-button').addEventListener('click', () => {
+            showFinalScreen("¡Gracias a Dios que dijiste que no!", "No quiero entregar mi alma al diablo. 😅");
+        });
+
+        function showFinalScreen(message, text) {
+            document.getElementById('final-message').textContent = message;
+            document.getElementById('final-text').textContent = text;
+            showScreen('final');
+        }
+
+        // Check if there's a gift link in the URL
+        const giftId = new URLSearchParams(window.location.search).get('gift');
+        if (giftId) {
+            const giftPhotos = loadGift(giftId);
+            if (giftPhotos) {
+                displayPhotos('gift-photo-gallery', giftPhotos);
+                showScreen('gift');
+            }
+        }
+    </script>
 </body>
 </html>
