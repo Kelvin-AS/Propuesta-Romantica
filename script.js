@@ -9,13 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const noButton = document.getElementById('no-button');
     const finalMessage = document.getElementById('final-message');
     const finalText = document.getElementById('final-text');
+    const imageUpload = document.getElementById('image-upload');
 
     let yesClicks = 0;
 
     document.getElementById('open-gift').addEventListener('click', () => {
         giftScreen.classList.add('hidden');
         photosScreen.classList.remove('hidden');
-        loadPhotos();
     });
 
     document.getElementById('continue-button').addEventListener('click', () => {
@@ -32,38 +32,33 @@ document.addEventListener('DOMContentLoaded', () => {
     yesButton.addEventListener('click', handleYesClick);
     noButton.addEventListener('click', handleNoClick);
 
-    function loadPhotos() {
-        const params = new URLSearchParams(window.location.search);
-        const imageUrls = params.getAll('img');
-        
-        if (imageUrls.length === 0) {
-            const defaultImages = [
-                'https://via.placeholder.com/300x300.png?text=Foto+1',
-                'https://via.placeholder.com/300x300.png?text=Foto+2',
-                'https://via.placeholder.com/300x300.png?text=Foto+3'
-            ];
-            imageUrls.push(...defaultImages);
-        }
+    imageUpload.addEventListener('change', handleImageUpload);
 
-        imageUrls.forEach(src => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = 'Foto de nosotros';
-            photoGallery.appendChild(img);
-        });
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Foto subida';
+                photoGallery.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        }
     }
 
     function handleYesClick() {
         yesClicks++;
-        if (yesClicks < 5) {
+        if (yesClicks < 50) {
             moveYesButton();
         } else {
-            showFinalScreen("¡Gracias a Dios que no dijiste que sí!", "No quiero entregar mi alma al diablo. 😅");
+            showFinalScreen("¡Eres fuerte!", "Diste y diste hasta que le diste que si. 😅");
         }
     }
 
     function handleNoClick() {
-        showFinalScreen("¡Gracias a Dios que dijiste que no!", "No quiero entregar mi alma al diablo. 😅");
+        showFinalScreen("¡Bicho no te quieres casar conmigo!", "Y yo queriendo casarme contigo. ");
     }
 
     function moveYesButton() {
