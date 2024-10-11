@@ -33,7 +33,7 @@ h1, h2 {
     color: #FF69B4;
 }
 
-button {
+button, .upload-button {
     background-color: #FF69B4;
     color: white;
     border: none;
@@ -42,9 +42,10 @@ button {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s;
+    font-size: 16px;
 }
 
-button:hover {
+button:hover, .upload-button:hover {
     background-color: #FF1493;
 }
 
@@ -83,4 +84,20 @@ button:hover {
     100% {
         transform: translateY(-100vh) rotate(360deg);
     }
+}
+
+.upload-button {
+    display: inline-block;
+}
+
+#image-upload {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
 }
