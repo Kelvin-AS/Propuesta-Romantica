@@ -33,7 +33,19 @@ document.addEventListener('DOMContentLoaded', () => {
     noButton.addEventListener('click', handleNoClick);
 
     function loadPhotos() {
-        config.images.forEach(src => {
+        const params = new URLSearchParams(window.location.search);
+        const imageUrls = params.getAll('img');
+        
+        if (imageUrls.length === 0) {
+            const defaultImages = [
+                'https://via.placeholder.com/300x300.png?text=Foto+1',
+                'https://via.placeholder.com/300x300.png?text=Foto+2',
+                'https://via.placeholder.com/300x300.png?text=Foto+3'
+            ];
+            imageUrls.push(...defaultImages);
+        }
+
+        imageUrls.forEach(src => {
             const img = document.createElement('img');
             img.src = src;
             img.alt = 'Foto de nosotros';
@@ -43,15 +55,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleYesClick() {
         yesClicks++;
-        if (yesClicks < 50) {
+        if (yesClicks < 5) {
             moveYesButton();
         } else {
-            showFinalScreen("¡De verdad te quieres casar?!", "le diste 50 veces que si 😅");
+            showFinalScreen("¡Gracias a Dios que no dijiste que sí!", "No quiero entregar mi alma al diablo. 😅");
         }
     }
 
     function handleNoClick() {
-        showFinalScreen("¡Bicho no te quieres casar conmigo!", "Yo si queria");
+        showFinalScreen("¡Gracias a Dios que dijiste que no!", "No quiero entregar mi alma al diablo. 😅");
     }
 
     function moveYesButton() {
