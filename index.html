@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regalo Romántico</title>
+    <title>Regalo Romántico Personalizado</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,27 +48,35 @@
         button:hover {
             background-color: #FF1493;
         }
-        input[type="text"], input[type="password"] {
+        input[type="text"], input[type="password"], input[type="email"], input[type="tel"], textarea {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ddd;
             border-radius: 5px;
         }
-        #photo-gallery {
+        #photo-gallery, #gift-photo-gallery {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
             margin-top: 20px;
         }
-        #photo-gallery img {
+        #photo-gallery img, #gift-photo-gallery img {
             max-width: 100%;
             height: auto;
             border-radius: 5px;
         }
         .hidden {
             display: none;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .link {
+            color: #FF69B4;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -81,17 +89,43 @@
         </div>
         <div id="admin-login-screen" class="screen">
             <h2>Iniciar Sesión</h2>
-            <input type="text" id="username" placeholder="Usuario">
-            <input type="password" id="password" placeholder="Contraseña">
+            <input type="text" id="login-username" placeholder="Usuario">
+            <input type="password" id="login-password" placeholder="Contraseña">
             <button id="login">Iniciar Sesión</button>
+            <p class="text-center">¿No tienes cuenta? <span id="go-to-register" class="link">Regístrate</span></p>
+            <p class="text-center"><span id="forgot-password" class="link">¿Olvidaste tu contraseña?</span></p>
+        </div>
+        <div id="register-screen" class="screen">
+            <h2>Registro</h2>
+            <input type="text" id="register-name" placeholder="Nombre completo">
+            <input type="text" id="register-username" placeholder="Usuario">
+            <input type="password" id="register-password" placeholder="Contraseña">
+            <input type="email" id="register-email" placeholder="Correo electrónico">
+            <input type="tel" id="register-phone" placeholder="Teléfono">
             <button id="register">Registrarse</button>
+            <p class="text-center">¿Ya tienes cuenta? <span id="go-to-login" class="link">Inicia sesión</span></p>
+        </div>
+        <div id="forgot-password-screen" class="screen">
+            <h2>Recuperar Contraseña</h2>
+            <input type="text" id="recovery-username" placeholder="Usuario">
+            <button id="send-recovery-code">Enviar Código de Recuperación</button>
+            <div id="recovery-code-section" class="hidden">
+                <input type="text" id="recovery-code" placeholder="Código de recuperación">
+                <input type="password" id="new-password" placeholder="Nueva contraseña">
+                <button id="reset-password">Restablecer Contraseña</button>
+            </div>
         </div>
         <div id="admin-panel" class="screen">
             <h2>Panel de Administración</h2>
             <input type="file" id="photo-upload" accept="image/*" multiple class="hidden">
             <button id="upload-photos">Subir Fotos</button>
             <div id="photo-gallery"></div>
-            <button id="generate-link">Generar Enlace</button>
+            <button id="save-photos">Guardar Fotos</button>
+            <h3>Personalizar Mensajes Finales</h3>
+            <textarea id="yes-message" rows="3" placeholder="Mensaje para 'Sí'"></textarea>
+            <textarea id="no-message" rows="3" placeholder="Mensaje para 'No'"></textarea>
+            <button id="save-messages">Guardar Mensajes</button>
+            <button id="generate-link">Generar Enlace para Usuarios</button>
             <p id="generated-link"></p>
             <button id="copy-link">Copiar Enlace</button>
             <button id="admin-logout">Cerrar Sesión</button>
@@ -116,6 +150,8 @@
         const screens = {
             home: document.getElementById('home-screen'),
             adminLogin: document.getElementById('admin-login-screen'),
+            register: document.getElementById('register-screen'),
+            forgotPassword: document.getElementById('forgot-password-screen'),
             adminPanel: document.getElementById('admin-panel'),
             gift: document.getElementById('gift-screen'),
             proposal: document.getElementById('proposal-screen'),
@@ -124,6 +160,10 @@
 
         let currentUser = null;
         let selectedPhotos = [];
+        let customMessages = {
+            yes: "¡Gracias a Dios que no dijiste que sí!",
+            no: "¡Gracias a Dios que dijiste que no!"
+        };
 
         function showScreen(screenId) {
             Object.values(screens).forEach(screen => screen.classList.remove('active'));
@@ -134,9 +174,9 @@
             return 'gift_' + Math.random().toString(36).substr(2, 9);
         }
 
-        function saveGift(photos) {
+        function saveGift(photos, messages) {
             const link = generateUniqueLink();
-            localStorage.setItem(link, JSON.stringify(photos));
+            localStorage.setItem(link, JSON.stringify({ photos, messages }));
             return link;
         }
 
@@ -154,12 +194,24 @@
             });
         }
 
+        function saveUser(userData) {
+            let users = JSON.parse(localStorage.getItem('users')) || {};
+            users[userData.username] = userData;
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        function getUser(username) {
+            let users = JSON.parse(localStorage.getItem('users')) || {};
+            return users[username];
+        }
+
         document.getElementById('view-gift').addEventListener('click', () => {
             const giftId = new URLSearchParams(window.location.search).get('gift');
             if (giftId) {
-                const giftPhotos = loadGift(giftId);
-                if (giftPhotos) {
-                    displayPhotos('gift-photo-gallery', giftPhotos);
+                const gift = loadGift(giftId);
+                if (gift) {
+                    displayPhotos('gift-photo-gallery', gift.photos);
+                    customMessages = gift.messages;
                     showScreen('gift');
                 } else {
                     alert('Regalo no encontrado');
@@ -174,10 +226,10 @@
         });
 
         document.getElementById('login').addEventListener('click', () => {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const users = JSON.parse(localStorage.getItem('users')) || {};
-            if (users[username] === password) {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const user = getUser(username);
+            if (user && user.password === password) {
                 currentUser = username;
                 showScreen('adminPanel');
             } else {
@@ -185,16 +237,61 @@
             }
         });
 
+        document.getElementById('go-to-register').addEventListener('click', () => {
+            showScreen('register');
+        });
+
+        document.getElementById('go-to-login').addEventListener('click', () => {
+            showScreen('adminLogin');
+        });
+
         document.getElementById('register').addEventListener('click', () => {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const users = JSON.parse(localStorage.getItem('users')) || {};
-            if (users[username]) {
+            const name = document.getElementById('register-name').value;
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const email = document.getElementById('register-email').value;
+            const phone = document.getElementById('register-phone').value;
+
+            if (getUser(username)) {
                 alert('El usuario ya existe');
             } else {
-                users[username] = password;
-                localStorage.setItem('users', JSON.stringify(users));
+                saveUser({ name, username, password, email, phone });
                 alert('Usuario registrado con éxito');
+                showScreen('adminLogin');
+            }
+        });
+
+        document.getElementById('forgot-password').addEventListener('click', () => {
+            showScreen('forgotPassword');
+        });
+
+        document.getElementById('send-recovery-code').addEventListener('click', () => {
+            const username = document.getElementById('recovery-username').value;
+            const user = getUser(username);
+            if (user) {
+                const recoveryCode = Math.random().toString(36).substr(2, 6);
+                user.recoveryCode = recoveryCode;
+                saveUser(user);
+                alert(`Código de recuperación enviado a ${user.email} y ${user.phone}`);
+                document.getElementById('recovery-code-section').classList.remove('hidden');
+            } else {
+                alert('Usuario no encontrado');
+            }
+        });
+
+        document.getElementById('reset-password').addEventListener('click', () => {
+            const username = document.getElementById('recovery-username').value;
+            const recoveryCode = document.getElementById('recovery-code').value;
+            const newPassword = document.getElementById('new-password').value;
+            const user = getUser(username);
+            if (user && user.recoveryCode === recoveryCode) {
+                user.password = newPassword;
+                delete user.recoveryCode;
+                saveUser(user);
+                alert('Contraseña restablecida con éxito');
+                showScreen('adminLogin');
+            } else {
+                alert('Código de recuperación inválido');
             }
         });
 
@@ -205,7 +302,7 @@
         document.getElementById('photo-upload').addEventListener('change', (event) => {
             const files = event.target.files;
             selectedPhotos = [];
-            for (let i = 0; i < files.length; i++) {
+            for (let i = 0; i < Math.min(files.length, 3); i++) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     selectedPhotos.push(e.target.result);
@@ -215,13 +312,27 @@
             }
         });
 
+        document.getElementById('save-photos').addEventListener('click', () => {
+            if (selectedPhotos.length > 0) {
+                alert('Fotos guardadas exitosamente');
+            } else {
+                alert('Por favor, sube fotos primero');
+            }
+        });
+
+        document.getElementById('save-messages').addEventListener('click', () => {
+            customMessages.yes = document.getElementById('yes-message').value || customMessages.yes;
+            customMessages.no = document.getElementById('no-message').value || customMessages.no;
+            alert('Mensajes guardados exitosamente');
+        });
+
         document.getElementById('generate-link').addEventListener('click', () => {
             if (selectedPhotos.length > 0) {
-                const link = saveGift(selectedPhotos);
+                const link = saveGift(selectedPhotos, customMessages);
                 const fullLink = `${window.location.origin}${window.location.pathname}?gift=${link}`;
                 document.getElementById('generated-link').textContent = fullLink;
             } else {
-                alert('Por favor, sube fotos primero');
+                alert('Por favor, sube y guarda fotos primero');
             }
         });
 
@@ -251,17 +362,19 @@
             if (yesClicks < 5) {
                 const button = document.getElementById('yes-button');
                 const maxX = window.innerWidth - button.offsetWidth;
-                const maxY = window.innerHeight - button.offsetHeight;
+                const maxY = window.innerHeight - 
+
+ button.offsetHeight;
                 button.style.position = 'fixed';
                 button.style.left = `${Math.random() * maxX}px`;
                 button.style.top = `${Math.random() * maxY}px`;
             } else {
-                showFinalScreen("¡Gracias a Dios que no dijiste que sí!", "No quiero entregar mi alma al diablo. 😅");
+                showFinalScreen(customMessages.yes, "No quiero entregar mi alma al diablo. 😅");
             }
         });
 
         document.getElementById('no-button').addEventListener('click', () => {
-            showFinalScreen("¡Gracias a Dios que dijiste que no!", "No quiero entregar mi alma al diablo. 😅");
+            showFinalScreen(customMessages.no, "No quiero entregar mi alma al diablo. 😅");
         });
 
         function showFinalScreen(message, text) {
@@ -273,9 +386,10 @@
         // Check if there's a gift link in the URL
         const giftId = new URLSearchParams(window.location.search).get('gift');
         if (giftId) {
-            const giftPhotos = loadGift(giftId);
-            if (giftPhotos) {
-                displayPhotos('gift-photo-gallery', giftPhotos);
+            const gift = loadGift(giftId);
+            if (gift) {
+                displayPhotos('gift-photo-gallery', gift.photos);
+                customMessages = gift.messages;
                 showScreen('gift');
             }
         }
